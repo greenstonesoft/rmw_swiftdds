@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>rmw_swiftdds_cpp</name>
+  <version>9.4.2</version>
+  <description>Implement the ROS middleware interface using SWIFT DDS static code generation in C++.</description>
+
+  <maintainer email="gitsupport@greenstonesoft.com">greenstonesoft</maintainer>
+
+  <license>Apache License 2.0</license>
+
+  <author email="gitsupport@greenstonesoft.com">greenstonesoft</author>
+
+  <buildtool_depend>ament_cmake_ros_core</buildtool_depend>
+
+  <buildtool_export_depend>ament_cmake</buildtool_export_depend>
+
+  <build_depend>nlohmann-json-dev</build_depend>
+  <build_depend>rcpputils</build_depend>
+  <build_depend>rcutils</build_depend>
+  <build_depend>rmw</build_depend>
+  <build_depend>rmw_dds_common</build_depend>
+  <build_depend>rosidl_runtime_c</build_depend>
+  <build_depend>rosidl_runtime_cpp</build_depend>
+  <build_depend>rosidl_typesupport_introspection_c</build_depend>
+  <build_depend>rosidl_typesupport_introspection_cpp</build_depend>
+  <build_depend>tracetools</build_depend>
+
+  <build_export_depend>rcutils</build_export_depend>
+  <build_export_depend>rmw_dds_common</build_export_depend>
+  <build_export_depend>rmw</build_export_depend>
+  <build_export_depend>rosidl_dynamic_typesupport</build_export_depend>
+  <build_export_depend>rosidl_runtime_c</build_export_depend>
+  <build_export_depend>rosidl_runtime_cpp</build_export_depend>
+  <build_export_depend>rosidl_typesupport_introspection_c</build_export_depend>
+  <build_export_depend>rosidl_typesupport_introspection_cpp</build_export_depend>
+  <build_export_depend>tracetools</build_export_depend>
+
+  <exec_depend>rcpputils</exec_depend>
+  <exec_depend>rcutils</exec_depend>
+  <exec_depend>rmw</exec_depend>
+  <exec_depend>rosidl_dynamic_typesupport</exec_depend>
+  <exec_depend>tracetools</exec_depend>
+
+  <test_depend>ament_cmake_gtest</test_depend>
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+  <test_depend>osrf_testing_tools_cpp</test_depend>
+  <test_depend>test_msgs</test_depend>
+
+  <member_of_group>rmw_implementation_packages</member_of_group>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
