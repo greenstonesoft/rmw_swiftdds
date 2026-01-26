@@ -119,6 +119,7 @@ bool create_datareader(
   greenstone::dds::Subscriber *subscriber,
   greenstone::dds::TopicDescription *des_topic,
   CustomDataReaderListener *listener,
+  greenstone::dds::StatusMask mask,
   greenstone::dds::DataReader **data_reader);
 
 /**

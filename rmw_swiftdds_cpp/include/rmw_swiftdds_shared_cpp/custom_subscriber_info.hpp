@@ -89,6 +89,7 @@ struct CustomSubscriberInfo : public CustomEventInfo
   greenstone::dds::DataReader *data_reader_{nullptr};
   RMWSubscriptionEvent *subscription_event_{nullptr};
   CustomDataReaderListener *data_reader_listener_{nullptr};
+  greenstone::dds::StatusMask data_reader_listener_mask_{0};
   std::shared_ptr<greenstone::dds::TopicDataType> type_support_;
   const void *type_support_impl_{nullptr};
   rmw_gid_t subscription_gid_{};

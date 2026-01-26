@@ -57,7 +57,7 @@ rmw_ret_t __rmw_take_response(
   dds::core::SampleInfo sample_info;
 
   if(greenstone::dds::ReturnCode_t::RETCODE_OK ==
-    info->response_reader_->take_next_sample(&data, sample_info))
+    info->response_reader_->take_first_sample(&data, sample_info))
   {
     if(sample_info.valid_data) {
       request_header->source_timestamp = sample_info.source_timestamp.to_nanosecond();

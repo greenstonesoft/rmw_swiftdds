@@ -100,6 +100,25 @@ rmw_ret_t __rmw_subscription_get_actual_qos(
   return RMW_RET_OK;
 }
 
+rmw_ret_t
+__rmw_subscription_set_content_filter(
+  rmw_subscription_t * subscription,
+  const rmw_subscription_content_filter_options_t * options
+)
+{
+  return RMW_RET_UNSUPPORTED;
+}
+
+rmw_ret_t
+__rmw_subscription_get_content_filter(
+  const rmw_subscription_t * subscription,
+  rcutils_allocator_t * allocator,
+  rmw_subscription_content_filter_options_t * options
+)
+{
+  return RMW_RET_UNSUPPORTED;
+}
+
 rmw_ret_t __rmw_subscription_set_on_new_message_callback(
   rmw_subscription_t *rmw_subscription,
   rmw_event_callback_t callback,

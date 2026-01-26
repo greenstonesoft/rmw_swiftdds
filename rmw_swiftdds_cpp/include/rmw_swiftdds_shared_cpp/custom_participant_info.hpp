@@ -113,11 +113,14 @@ typedef struct CustomParticipantInfo
   greenstone::dds::Topic * find_or_create_topic(
     const std::string & topic_name,
     const std::string & type_name,
+    const std::string & type_identifier,
     const greenstone::dds::TopicQos & topic_qos,
     EventListenerInterface *event_listener);
 
   RMW_SWIFTDDS_SHARED_CPP_PUBLIC
-  void delete_topic(const greenstone::dds::Topic *topic, EventListenerInterface *event_listener);
+  void delete_topic(
+    const greenstone::dds::Topic *topic, const std::string & type_identifier,
+    EventListenerInterface *event_listener);
 } CustomParticipantInfo;
 
 class ParticipantListener : public greenstone::dds::DomainParticipantListener

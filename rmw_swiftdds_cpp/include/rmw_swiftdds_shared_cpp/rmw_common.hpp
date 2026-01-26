@@ -293,6 +293,19 @@ rmw_ret_t __rmw_subscription_get_actual_qos(
   rmw_qos_profile_t *qos);
 
 RMW_SWIFTDDS_SHARED_CPP_PUBLIC
+rmw_ret_t
+__rmw_subscription_set_content_filter(
+  rmw_subscription_t * subscription,
+  const rmw_subscription_content_filter_options_t * options);
+
+RMW_SWIFTDDS_SHARED_CPP_PUBLIC
+rmw_ret_t
+__rmw_subscription_get_content_filter(
+  const rmw_subscription_t * subscription,
+  rcutils_allocator_t * allocator,
+  rmw_subscription_content_filter_options_t * options);
+
+RMW_SWIFTDDS_SHARED_CPP_PUBLIC
 rmw_ret_t __rmw_service_response_publisher_get_actual_qos(
   const rmw_service_t *service,
   rmw_qos_profile_t *qos);

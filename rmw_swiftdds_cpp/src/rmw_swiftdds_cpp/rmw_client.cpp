@@ -117,11 +117,17 @@ rmw_client_t * rmw_create_client(
   info->request_publisher_matched_count_ = 0;
   info->response_subscriber_matched_count_ = 0;
   auto all_types = rmw_swiftdds_shared_cpp::make_request_response_value_types(type_supports);
-  if(participant_info->participant_->is_type_registered(all_types.first->get_type_name())) {
+  std::string const req_type_map_key {all_types.first->get_type_name() + ":" +
+    all_types.first->type_identifier()};
+  std::string const res_type_map_key {all_types.second->get_type_name() + ":" +
+    all_types.second->type_identifier()};
+  if(participant_info->participant_->is_type_registered(all_types.first->get_type_name(),
+      all_types.first->type_identifier()))
+  {
     info->request_type_support_ =
-      participant_info->type_name_to_type_[all_types.first->get_type_name()];
+      participant_info->type_name_to_type_[req_type_map_key];
     info->response_type_support_ =
-      participant_info->type_name_to_type_[all_types.second->get_type_name()];
+      participant_info->type_name_to_type_[res_type_map_key];
   } else {
     info->request_type_support_ = all_types.first;
     info->response_type_support_ = all_types.second;
@@ -131,9 +137,9 @@ rmw_client_t * rmw_create_client(
     info->response_type_support_->register_type(
         participant_info->participant_,
         const_cast<std::string &>(info->response_type_support_->get_type_name()));
-    participant_info->type_name_to_type_[all_types.first->get_type_name()] =
+    participant_info->type_name_to_type_[req_type_map_key] =
       info->request_type_support_;
-    participant_info->type_name_to_type_[all_types.second->get_type_name()] =
+    participant_info->type_name_to_type_[res_type_map_key] =
       info->response_type_support_;
   }
 
@@ -173,7 +179,8 @@ rmw_client_t * rmw_create_client(
 
   // Create response topic
   info->response_topic_ = participant_info->find_or_create_topic(
-      response_topic_name, info->response_type_support_->get_type_name(), topic_qos, nullptr);
+      response_topic_name, info->response_type_support_->get_type_name(),
+      info->response_type_support_->type_identifier(), topic_qos, nullptr);
   if(!info->response_topic_) {
     RMW_SET_ERROR_MSG("create_client() failed to create response topic");
     return nullptr;
@@ -181,7 +188,8 @@ rmw_client_t * rmw_create_client(
 
   // Create request topic
   info->request_topic_ = participant_info->find_or_create_topic(
-      request_topic_name, info->request_type_support_->get_type_name(), topic_qos, nullptr);
+      request_topic_name, info->request_type_support_->get_type_name(),
+      info->request_type_support_->type_identifier(), topic_qos, nullptr);
   if(!info->request_topic_) {
     RMW_SET_ERROR_MSG("create_client() failed to create request topic");
     return nullptr;
@@ -215,11 +223,12 @@ rmw_client_t * rmw_create_client(
   }
 
   // Creates DataReader
+  info->listener_mask_ = greenstone::dds::StatusKind::SUBSCRIPTION_MATCHED_STATUS;
   info->response_reader_ =
     subscriber->create_datareader(info->response_topic_,
                                     reader_qos,
                                     info->listener_,
-                                    greenstone::dds::StatusKind::SUBSCRIPTION_MATCHED_STATUS);
+                                    info->listener_mask_);
 
   if(!info->response_reader_) {
     RMW_SET_ERROR_MSG("create_client() failed to create response DataReader");
@@ -254,11 +263,12 @@ rmw_client_t * rmw_create_client(
 
   // Creates DataWriter with a mask enabling publication_matched calls for the
   // listener
+  info->pub_listener_mask_ = greenstone::dds::StatusKind::PUBLICATION_MATCHED_STATUS;
   info->request_writer_ =
     publisher->create_datawriter(info->request_topic_,
                                    writer_qos,
                                    info->pub_listener_,
-                                   greenstone::dds::StatusKind::PUBLICATION_MATCHED_STATUS);
+                                   info->pub_listener_mask_);
 
   if(!info->request_writer_) {
     RMW_SET_ERROR_MSG("create_client() failed to create request DataWriter");

@@ -102,7 +102,7 @@ rmw_ret_t __rmw_take_request(
   dds::core::SampleInfo sample_info;
 
   if(greenstone::dds::ReturnCode_t::RETCODE_OK ==
-    info->request_reader_->take_next_sample(&data, sample_info))
+    info->request_reader_->take_first_sample(&data, sample_info))
   {
     if(sample_info.valid_data) {
       memcpy(request_header->request_id.writer_guid, data.header.writer_guid, RMW_GID_STORAGE_SIZE);

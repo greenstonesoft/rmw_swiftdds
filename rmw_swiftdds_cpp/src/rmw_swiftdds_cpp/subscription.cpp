@@ -150,14 +150,17 @@ rmw_subscription_t * __create_subscription(
   info->typesupport_identifier_ = type_supports->typesupport_identifier;
   auto type_support = rmw_swiftdds_shared_cpp::make_message_value_type(type_supports);
   auto type_name = type_support->get_type_name();
-  if(participant_info->participant_->is_type_registered(type_name)) {
-    info->type_support_ = participant_info->type_name_to_type_[type_name];
+  std::string const type_map_key {type_name + ":" + type_support->type_identifier()};
+  if(participant_info->participant_->is_type_registered(type_name,
+      type_support->type_identifier()))
+  {
+    info->type_support_ = participant_info->type_name_to_type_[type_map_key];
   } else {
     info->type_support_ = type_support;
     info->type_support_->register_type(
         participant_info->participant_,
         const_cast<std::string &>(info->type_support_->get_type_name()));
-    participant_info->type_name_to_type_[type_name] = info->type_support_;
+    participant_info->type_name_to_type_[type_map_key] = info->type_support_;
   }
 
   auto cleanup_info = rcpputils::make_scope_exit([info, participant_info]() {
@@ -198,6 +201,7 @@ rmw_subscription_t * __create_subscription(
   info->topic_name_mangled_ = _create_topic_name(qos_policies, ros_topic_prefix, topic_name);
   info->topic_ = participant_info->find_or_create_topic(info->topic_name_mangled_,
                                                         info->type_support_->get_type_name(),
+                                                        info->type_support_->type_identifier(),
                                                         topic_qos,
                                                         info->subscription_event_);
   if(!info->topic_) {
@@ -226,11 +230,13 @@ rmw_subscription_t * __create_subscription(
   info->datareader_qos_ = reader_qos;
 
   // create_datareader
+  info->data_reader_listener_mask_ = greenstone::dds::StatusKind::SUBSCRIPTION_MATCHED_STATUS;
   if(!rmw_swiftdds_shared_cpp::create_datareader(info->datareader_qos_,
                                                  subscription_options,
                                                  subscriber,
                                                  info->topic_,
                                                  info->data_reader_listener_,
+                                                 info->data_reader_listener_mask_,
                                                  &info->data_reader_))
   {
     RMW_SET_ERROR_MSG("create_datareader() could not create data reader");

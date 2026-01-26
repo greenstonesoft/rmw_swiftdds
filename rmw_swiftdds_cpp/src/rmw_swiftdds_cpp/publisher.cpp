@@ -111,14 +111,17 @@ rmw_swiftdds_cpp::create_publisher(
   // Create Topic and Type names
   auto type_support = rmw_swiftdds_shared_cpp::make_message_value_type(type_supports);
   auto type_name = type_support->get_type_name();
-  if(participant_info->participant_->is_type_registered(type_name)) {
-    info->type_support_ = participant_info->type_name_to_type_[type_name];
+  std::string const type_map_key {type_name + ":" + type_support->type_identifier()};
+  if(participant_info->participant_->is_type_registered(type_name,
+    type_support->type_identifier()))
+  {
+    info->type_support_ = participant_info->type_name_to_type_[type_map_key];
   } else {
     info->type_support_ = type_support;
     info->type_support_->register_type(
         participant_info->participant_,
         const_cast<std::string &>(info->type_support_->get_type_name()));
-    participant_info->type_name_to_type_[type_name] = info->type_support_;
+    participant_info->type_name_to_type_[type_map_key] = info->type_support_;
   }
 
   auto cleanup_info = rcpputils::make_scope_exit([info, participant_info]() {
@@ -157,6 +160,7 @@ rmw_swiftdds_cpp::create_publisher(
   info->topic_ = participant_info->find_or_create_topic(
       _create_topic_name(qos_policies, ros_topic_prefix, topic_name),
       info->type_support_->get_type_name(),
+      info->type_support_->type_identifier(),
       topic_qos,
       info->publisher_event_);
   if(!info->topic_) {
@@ -185,11 +189,12 @@ rmw_swiftdds_cpp::create_publisher(
 
   // Creates DataWriter with a mask enabling publication_matched calls for the
   // listener
+  info->data_writer_listener_mask_ = greenstone::dds::StatusKind::PUBLICATION_MATCHED_STATUS;
   info->data_writer_ =
     publisher->create_datawriter(info->topic_,
                                    writer_qos,
                                    info->data_writer_listener_,
-                                   greenstone::dds::StatusKind::PUBLICATION_MATCHED_STATUS);
+                                   info->data_writer_listener_mask_);
 
   if(!info->data_writer_) {
     RMW_SET_ERROR_MSG("create_publisher() could not create data writer");

@@ -153,8 +153,8 @@ add_library(${PROJECT_NAME}
   src/rmw_swiftdds_shared_cpp/utils.cpp
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${GREENSTONE-DCPS_INCLUDE_DIRS} nlohmann_json::nlohmann_json)
-target_link_libraries(${PROJECT_NAME} PRIVATE ${GREENSTONE-DCPS_LIBRARIES})
+target_include_directories(${PROJECT_NAME} PRIVATE ${GREENSTONE-DCPS_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${GREENSTONE-DCPS_LIBRARIES} nlohmann_json::nlohmann_json)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
   rmw::rmw
@@ -192,7 +192,7 @@ register_rmw_implementation(
   "c:rosidl_typesupport_introspection_c"
   "cpp:rosidl_typesupport_introspection_cpp")
 
-if(BUILD_TESTING)
+if(BUILD_TESTING AND (NOT WIN32))
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
 

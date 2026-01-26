@@ -165,14 +165,14 @@ rmw_swiftdds_shared_cpp::create_participant(
 
   error_str = rcutils_get_env("RMW_SWIFTDDS_CONFIG", &env_value);
   if(error_str != NULL) {
-    RCUTILS_LOG_INFO_NAMED(
+    RCUTILS_LOG_DEBUG_NAMED(
         "rmw_swiftdds_shared_cpp", "Error getting env var[RMW_SWIFTDDS_CONFIG]: %s\n", error_str);
     return nullptr;
   }
 
   if(env_value != nullptr) {
     if(strcmp(env_value, "") != 0) {
-      RCUTILS_LOG_INFO_NAMED(
+      RCUTILS_LOG_DEBUG_NAMED(
           "rmw_swiftdds_shared_cpp", "RMW_SWIFTDDS_CONFIG is set [%s]", env_value);
       std::string env_value_str = std::string(env_value);
       std::ifstream config_file(env_value_str);
@@ -210,7 +210,7 @@ rmw_swiftdds_shared_cpp::create_participant(
       // SHM BUFFER SIZE
       if(config_json.contains("shared_memory_buffer_size")) {
         auto shm_buffer_size = config_json["shared_memory_buffer_size"];
-        participant_attr.shared_memory_size(shm_buffer_size.get<guint32_t>());
+        participant_attr.shared_memory_size(shm_buffer_size.get<uint32_t>());
       }
       // WLP
       if(config_json.contains("WLP")) {
@@ -230,16 +230,29 @@ rmw_swiftdds_shared_cpp::create_participant(
             QosConfig::getInstance().send_sync = false;
           }
         }
+        // enable_zero_copy
+        if(config_json.contains("enable_zero_copy")) {
+          auto enable_zero_copy = config_json["enable_zero_copy"];
+          if(enable_zero_copy) {
+            QosConfig::getInstance().enable_zero_copy = true;
+
+            // zero copy shm size
+            if(config_json.contains("zero_copy_shm_size")) {
+              auto zero_copy_shm_size = config_json["zero_copy_shm_size"];
+              QosConfig::getInstance().enable_zero_copy = zero_copy_shm_size.get<uint32_t>();
+            }
+          }
+        }
       }
       domainParticipantQos.rtps_participant_attributes(participant_attr);
     } else {
-      RCUTILS_LOG_INFO_NAMED("rmw_swiftdds_shared_cpp",
+      RCUTILS_LOG_DEBUG_NAMED("rmw_swiftdds_shared_cpp",
                              "RMW_SWIFTDDS_CONFIG is set [default config]");
     }
   }
   // local mode
   domainParticipantQos.rtps_participant_attributes().local_mode(
-      greenstone::dds::LocalMode::TURN_ON);
+      greenstone::dds::LocalMode::TURN_ON_SYNC);
   // opt qos
   domainParticipantQos.rtps_participant_attributes().send_optional_qos(true);
   domainParticipantQos.rtps_participant_attributes().data_use_shared_memory(!G_IS_DAEMON_NODE);

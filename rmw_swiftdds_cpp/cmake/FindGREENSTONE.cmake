@@ -16,7 +16,7 @@ find_path(GREENSTONE_INCLUDE_DIR
   NAMES swiftdds/dcps/SwiftDdsExport.h
   PATHS
     ${PROJECT_SOURCE_DIR}/lib/include
-    /usr/lib
+    /usr/include
   DOC "DDS header file directory"
 )
 
@@ -25,7 +25,7 @@ find_library(GREENSTONE_LIBRARIES
     greenstone-DCPS
   PATHS
     ${PROJECT_SOURCE_DIR}/lib
-    /usr/include
+    /usr/lib
   DOC "DDS core library"
 )
 

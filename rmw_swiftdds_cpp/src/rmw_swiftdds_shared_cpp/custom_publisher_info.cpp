@@ -188,8 +188,6 @@ void RMWPublisherEvent::set_on_new_event_callback(
 {
   rcpputils::unique_lock<std::mutex> lock_mutex(on_new_event_m_);
 
-  greenstone::dds::StatusMask status_mask = publisher_info_->data_writer_->get_status_changes();
-
   if(callback) {
     switch(event_type) {
       case RMW_EVENT_LIVELINESS_LOST:
@@ -241,7 +239,8 @@ void RMWPublisherEvent::set_on_new_event_callback(
     user_data_[event_type] = user_data;
     on_new_event_cb_[event_type] = callback;
 
-    status_mask |= rmw_swiftdds_shared_cpp::internal::rmw_event_to_dds_statusmask(event_type);
+    publisher_info_->data_writer_listener_mask_ |=
+      rmw_swiftdds_shared_cpp::internal::rmw_event_to_dds_statusmask(event_type);
   } else {
     user_data_[event_type] = nullptr;
     on_new_event_cb_[event_type] = nullptr;
@@ -249,11 +248,13 @@ void RMWPublisherEvent::set_on_new_event_callback(
     // publication_matched status should be kept enabled, since we need to
     // keep tracking matched subscriptions
     if(RMW_EVENT_PUBLICATION_MATCHED != event_type) {
-      status_mask &= ~rmw_swiftdds_shared_cpp::internal::rmw_event_to_dds_statusmask(event_type);
+      publisher_info_->data_writer_listener_mask_ &=
+        ~rmw_swiftdds_shared_cpp::internal::rmw_event_to_dds_statusmask(event_type);
     }
   }
 
-  publisher_info_->data_writer_->set_listener(publisher_info_->data_writer_listener_, status_mask);
+  publisher_info_->data_writer_->set_listener(publisher_info_->data_writer_listener_,
+    publisher_info_->data_writer_listener_mask_);
 }
 
 void RMWPublisherEvent::track_unique_subscription(greenstone::dds::GUID guid)

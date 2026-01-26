@@ -11,35 +11,100 @@ You can specify Swift DDS as your ROS 2 middleware layer in two different ways:
     ```bash
     export RMW_IMPLEMENTATION=rmw_swiftdds_cpp
     ```
-1. When launching your ROS 2 application:
+2. When launching your ROS 2 application:
     ```bash
     RMW_IMPLEMENTATION=rmw_swiftdds_cpp ros2 run <your_package> <your application>
     ```
 
-## Install SwiftDDS from deb
+## Install SwiftDDS from apt(Ubuntu)
 
 `rmw_swiftdds_cpp` depends on the installation of [SwiftDDS](https://github.com/greenstonesoft/greenstone-dds), so SwiftDDS must be installed.
-
-1. Download the SwiftDDS installation package from the package folder in the repository(e.g. greenstone-swift-dds_3.0.5_amd64.deb).
-1. Run the installation command:
+1. Install the registry signing key:
     ```bash
-    sudo dpkg -i /path/to/your/deb/greenstone-swift-dds_3.0.5_amd64.deb
+    curl -fsSL "https://buildkite:bkua_e7b699a10f5eda9c554c4e7638d8dbc968920c01@packages.buildkite.com/greenstonetechnology/swiftdds-deb/gpgkey" | sudo gpg --dearmor -o /etc/apt/keyrings/greenstonetechnology_swiftdds-deb-archive-keyring.gpg
     ```
+2. Stash the private registry credentials into apt auth.conf:
+    ```bash
+    echo "machine https://packages.buildkite.com/greenstonetechnology/swiftdds-deb/ login buildkite password bkua_e7b699a10f5eda9c554c4e7638d8dbc968920c01" | sudo tee /etc/apt/auth.conf.d/greenstonetechnology_swiftdds-deb.conf > /dev/null
+
+    sudo chmod 600 /etc/apt/auth.conf.d/greenstonetechnology_swiftdds-deb.conf
+    ```
+3. Configure the source:
+    ```bash
+    echo -e "deb [signed-by=/etc/apt/keyrings/greenstonetechnology_swiftdds-deb-archive-keyring.gpg] https://packages.buildkite.com/greenstonetechnology/swiftdds-deb/any/ any main\ndeb-src [signed-by=/etc/apt/keyrings/greenstonetechnology_swiftdds-deb-archive-keyring.gpg] https://packages.buildkite.com/greenstonetechnology/swiftdds-deb/any/ any main" | sudo tee /etc/apt/sources.list.d/buildkite-greenstonetechnology-swiftdds-deb.list > /dev/null
+    ```
+4. Run the installation command:
+    ```bash
+    sudo apt update && sudo apt install greenstone-swift-dds
+    ```
+
+## Remove SwiftDDS from apt
+1. Run the uninstall command:
+    ```bash
+    sudo apt remove greenstone-swift-dds
+    ```
+
+## Install SwiftDDS from dnf(RHEL)
+1. Registry Configuration:
+    ```bash
+    sudo sh -c 'echo -e "[swiftdds-rpm]\nname=swiftdds_rpm\nbaseurl=https://buildkite:bkua_e7b699a10f5eda9c554c4e7638d8dbc968920c01@packages.buildkite.com/greenstonetechnology/swiftdds-rpm/rpm_any/rpm_any/\$basearch\nenabled=1\nrepo_gpgcheck=1\ngpgcheck=0\ngpgkey=https://buildkite:bkua_e7b699a10f5eda9c554c4e7638d8dbc968920c01@packages.buildkite.com/greenstonetechnology/swiftdds-rpm/gpgkey\npriority=1" > /etc/yum.repos.d/swiftdds-rpm.repo'
+    ```
+2. Run the installation command:
+    ```bash
+    sudo dnf update && sudo dnf install GreenStone-Swift-DDS
+    ```
+
+## Remove SwiftDDS from dnf
+1. Run the uninstall command:
+    ```bash
+    sudo dnf remove GreenStone-Swift-DDS
+    ```
+
+## Install SwiftDDS from pixi(Windows 10/11)
+1. Install pixi
+    ```PowerShell
+    irm https://pixi.sh/install.ps1 | iex
+    pixi --version
+    ```
+2. Install SwiftDDS
+    Add the “greenstone” parameter to the channels field in pixi.toml.
+    ```toml
+    [workspace]
+    name = "pixi_ros2_rolling"
+    version = "0.1.0"
+    description = "Dependencies to build ROS 2 on Windows"
+    authors = ["Chris Lalancette <clalancette@gmail.com>"]
+    channels = ["conda-forge", "greenstone"]
+    platforms = ["win-64"]
+    ```
+
+    ```PowerShell
+    pixi add greenstone-swift-dds
+    ```
+
+## Remove SwiftDDS from pixi
+1. Run the uninstall command
+   ```PowerShell
+   pixi remove greenstone-swift-dds
+   ```
+
 
 ## Install rmw_swiftdds_cpp from source code
 
 1. Clone `rmw_swiftdds_cpp` in the ROS 2 workspace source directory(e.g. ros2_ws).
     ```bash
-    cd ros2_ws/src
-    git clone xxxxxxx
+    cd ~/ros2_ws/src
+    git clone https://github.com/greenstonesoft/rmw_swiftdds
+    cd rmw_swiftdds
+    git checkout -b rolling origin/rolling
     ```
-1. Install necessary packages for `rmw_swiftdds_cpp`.
+2. Install necessary packages for `rmw_swiftdds_cpp`.
     ```bash
-    cd ..
+    cd ~/ros2_ws
     rosdep update
     rosdep install --from src -i
     ```
-1.  Run colcon build.
+3.  Run colcon build.
     ```bash
     colcon build --symlink-install [--packages-select rmw_swiftdds_cpp]
     source ./install/setup.bash
@@ -78,7 +143,9 @@ A JSON configuration file looks like the following (example):
         "shared_memory": true,
         "shared_memory_buffer_size": 20000000,
         "WLP": false,
-        "send_mode": "async"
+        "send_mode": "async",
+        "enable_zero_copy": false,
+        "zero_copy_shm_size": 100000000
     }
     ```
 
@@ -87,6 +154,8 @@ A JSON configuration file looks like the following (example):
 * shared_memory_buffer_size : The size of the shared memory pool. The unit is Byte.
 * WLP : If set to true, QoS liveliness is enabled. If not configured, the default is false.
 * send_mode : If true, the publisher sends synchronously (executed in the publish thread). If false, the message is cached in the queue and awaits processing by internal DDS threads. The default is false.
+* enable_zero_copy : On the premise that the message type supports loan message, If set to true, the publisher borrow_loaned_message will apply for memory from the shared memory. The defaule is false.
+* zero_copy_shm_size : The size of the zero copy shared memory. The unit is Byte.
 
 ## Quality Declaration files
 

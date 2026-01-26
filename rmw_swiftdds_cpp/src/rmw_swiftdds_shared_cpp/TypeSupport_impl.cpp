@@ -306,7 +306,7 @@ public:
     std::copy(std::begin(srv_data->header.writer_guid),
               std::end(srv_data->header.writer_guid),
               std_arr.begin());
-    uint32_t max_size{gstone::rtps::CdrUtil::alignment(4U, std_arr)};
+    uint32_t max_size{static_cast<uint32_t>(gstone::rtps::CdrUtil::alignment(4U, std_arr))};
     max_size = gstone::rtps::CdrUtil::alignment(max_size, srv_data->header.sequence_number);
 
     max_size = m_members->max_align_size(max_size, srv_data->data);
@@ -772,6 +772,8 @@ make_message_value_type(rosidl_message_type_support_t const *mts)
     topic_data_type->set_members(struct_type);
     topic_data_type->set_name(
         generate_topic_data_type_name<TypeGenerator::ROSIDL_C>(members).c_str());
+    topic_data_type->type_identifier(
+        std::string{TypeGeneratorInfo<TypeGenerator::ROSIDL_C>::get_identifier()});
     res_type = std::move(topic_data_type);
     return res_type;
   } else {
@@ -794,6 +796,8 @@ make_message_value_type(rosidl_message_type_support_t const *mts)
       topic_data_type->set_members(struct_type);
       topic_data_type->set_name(
           generate_topic_data_type_name<TypeGenerator::ROSIDL_Cpp>(members).c_str());
+      topic_data_type->type_identifier(
+          std::string{TypeGeneratorInfo<TypeGenerator::ROSIDL_Cpp>::get_identifier()});
       res_type = std::move(topic_data_type);
       return res_type;
     } else {
@@ -883,7 +887,8 @@ make_request_response_value_types(rosidl_service_type_support_t const *svc_ts)
     req_topic_data_type->set_members(req_struct_type);
     req_topic_data_type->set_name(
         generate_service_topic_data_type_name<TypeGenerator::ROSIDL_C>(typed, true).c_str());
-
+    req_topic_data_type->type_identifier(
+        std::string{TypeGeneratorInfo<TypeGenerator::ROSIDL_C>::get_identifier()});
     auto res_members{typed->response_members_};
     auto res_topic_data_type{std::make_shared<ServiceTopicDataType>()};
     res_topic_data_type->set_struct_size(res_members->size_of_);
@@ -897,6 +902,8 @@ make_request_response_value_types(rosidl_service_type_support_t const *svc_ts)
     res_topic_data_type->set_members(res_struct_type);
     res_topic_data_type->set_name(
         generate_service_topic_data_type_name<TypeGenerator::ROSIDL_C>(typed, false).c_str());
+    res_topic_data_type->type_identifier(
+        std::string{TypeGeneratorInfo<TypeGenerator::ROSIDL_C>::get_identifier()});
 
     return std::make_pair(std::move(req_topic_data_type), std::move(res_topic_data_type));
   } else {
@@ -922,6 +929,8 @@ make_request_response_value_types(rosidl_service_type_support_t const *svc_ts)
       req_topic_data_type->set_members(req_struct_type);
       req_topic_data_type->set_name(
           generate_service_topic_data_type_name<TypeGenerator::ROSIDL_Cpp>(typed, true).c_str());
+      req_topic_data_type->type_identifier(
+          std::string{TypeGeneratorInfo<TypeGenerator::ROSIDL_Cpp>::get_identifier()});
 
       auto res_members{typed->response_members_};
       auto res_topic_data_type{std::make_shared<ServiceTopicDataType>()};
@@ -936,6 +945,8 @@ make_request_response_value_types(rosidl_service_type_support_t const *svc_ts)
       res_topic_data_type->set_members(res_struct_type);
       res_topic_data_type->set_name(
           generate_service_topic_data_type_name<TypeGenerator::ROSIDL_Cpp>(typed, false).c_str());
+      res_topic_data_type->type_identifier(
+          std::string{TypeGeneratorInfo<TypeGenerator::ROSIDL_Cpp>::get_identifier()});
 
       return std::make_pair(std::move(req_topic_data_type), std::move(res_topic_data_type));
     } else {

@@ -1,4 +1,3 @@
-// Copyright 2016-2018 Proyectos y Sistemas de Mantenimiento SL (eProsima).
 // Copyright 2025 GreenStoneSoft, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +17,9 @@
 
 #include <mutex>
 
+namespace rmw_swiftdds_shared_cpp
+{
+
 class QosConfig final
 {
 private:
@@ -26,12 +28,18 @@ private:
   QosConfig & operator=(const QosConfig &) = delete;
 
 public:
-  static QosConfig & getInstance() {
+  static QosConfig & getInstance()
+  {
     static QosConfig instance;
     return instance;
   }
 
   std::mutex qosConfig_mutex{};
-  bool send_sync{false};
+  bool send_sync{true};
+  bool enable_zero_copy{false};
+  uint32_t zero_copy_shm_size{100U * 1024U * 1024U};
 };
+
+}  // namespace rmw_swiftdds_shared_cpp
+
 #endif  // RMW_SWIFTDDS_SHARED_CPP__QOS_CONFIG_HPP_

@@ -197,6 +197,9 @@ rmw_ret_t __rmw_wait(
       (wait_timeout) ? greenstone::dds::Duration_t{static_cast<int32_t>(wait_timeout->sec),
       static_cast<uint32_t>(wait_timeout->nsec)} :
     greenstone::dds::Duration_t::duration_infinite();
+    if(timeout.to_microsecond() == 0U) {
+      timeout.set_microsecond(1U);
+    }
 
     greenstone::dds::ConditionSeq triggered_conditions;
     greenstone::dds::ReturnCode_t ret_code = swiftdds_wait_set->wait(triggered_conditions, timeout);

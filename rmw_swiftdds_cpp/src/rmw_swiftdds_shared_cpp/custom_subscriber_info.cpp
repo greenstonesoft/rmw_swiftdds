@@ -221,8 +221,6 @@ void RMWSubscriptionEvent::set_on_new_event_callback(
 {
   rcpputils::unique_lock<std::mutex> lock_mutex(on_new_event_m_);
 
-  greenstone::dds::StatusMask status_mask = subscriber_info_->data_reader_->get_status_changes();
-
   if(callback) {
     switch(event_type) {
       case RMW_EVENT_LIVELINESS_CHANGED: {
@@ -287,7 +285,8 @@ void RMWSubscriptionEvent::set_on_new_event_callback(
     user_data_[event_type] = user_data;
     on_new_event_cb_[event_type] = callback;
 
-    status_mask |= rmw_swiftdds_shared_cpp::internal::rmw_event_to_dds_statusmask(event_type);
+    subscriber_info_->data_reader_listener_mask_ |=
+      rmw_swiftdds_shared_cpp::internal::rmw_event_to_dds_statusmask(event_type);
   } else {
     user_data_[event_type] = nullptr;
     on_new_event_cb_[event_type] = nullptr;
@@ -295,12 +294,13 @@ void RMWSubscriptionEvent::set_on_new_event_callback(
     // subscription_matched status should be kept enabled, since we need to
     // keep tracking matched publications
     if(RMW_EVENT_SUBSCRIPTION_MATCHED != event_type) {
-      status_mask &= ~rmw_swiftdds_shared_cpp::internal::rmw_event_to_dds_statusmask(event_type);
+      subscriber_info_->data_reader_listener_mask_ &=
+        ~rmw_swiftdds_shared_cpp::internal::rmw_event_to_dds_statusmask(event_type);
     }
   }
 
   subscriber_info_->data_reader_->set_listener(subscriber_info_->data_reader_listener_,
-                                               status_mask);
+                                               subscriber_info_->data_reader_listener_mask_);
 }
 
 void RMWSubscriptionEvent::set_on_new_message_callback(
@@ -308,7 +308,7 @@ void RMWSubscriptionEvent::set_on_new_message_callback(
   rmw_event_callback_t callback)
 {
   if(callback) {
-    auto unread_messages = subscriber_info_->data_reader_->get_unread_cache_count();
+    auto unread_messages = subscriber_info_->data_reader_->get_unread_cache_count(true);
 
     std::lock_guard<std::mutex> lock_mutex(on_new_message_m_);
 
@@ -319,17 +319,17 @@ void RMWSubscriptionEvent::set_on_new_message_callback(
     new_message_user_data_ = user_data;
     on_new_message_cb_ = callback;
 
-    greenstone::dds::StatusMask status_mask = subscriber_info_->data_reader_->get_status_changes();
-    status_mask |= greenstone::dds::StatusKind::DATA_AVAILABLE_STATUS;
+    subscriber_info_->data_reader_listener_mask_ |=
+      greenstone::dds::StatusKind::DATA_AVAILABLE_STATUS;
     subscriber_info_->data_reader_->set_listener(subscriber_info_->data_reader_listener_,
-                                                 status_mask);
+                                                 subscriber_info_->data_reader_listener_mask_);
   } else {
     std::lock_guard<std::mutex> lock_mutex(on_new_message_m_);
 
-    greenstone::dds::StatusMask status_mask = subscriber_info_->data_reader_->get_status_changes();
-    status_mask &= ~greenstone::dds::StatusKind::DATA_AVAILABLE_STATUS;
+    subscriber_info_->data_reader_listener_mask_ &=
+      ~greenstone::dds::StatusKind::DATA_AVAILABLE_STATUS;
     subscriber_info_->data_reader_->set_listener(subscriber_info_->data_reader_listener_,
-                                                 status_mask);
+                                                 subscriber_info_->data_reader_listener_mask_);
 
     new_message_user_data_ = nullptr;
     on_new_message_cb_ = nullptr;
@@ -359,7 +359,7 @@ void RMWSubscriptionEvent::update_data_available()
   rcpputils::unique_lock<std::mutex> lock_mutex(on_new_message_m_);
 
   if(on_new_message_cb_) {
-    auto unread_messages = subscriber_info_->data_reader_->get_unread_cache_count();
+    auto unread_messages = subscriber_info_->data_reader_->get_unread_cache_count(true);
 
     if(0 < unread_messages) {
       on_new_message_cb_(new_message_user_data_, unread_messages);

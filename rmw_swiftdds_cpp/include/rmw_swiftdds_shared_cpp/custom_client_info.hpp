@@ -50,11 +50,13 @@ typedef struct CustomClientInfo
   greenstone::dds::Topic *response_topic_{nullptr};
 
   ClientListener *listener_{nullptr};
+  greenstone::dds::StatusMask listener_mask_{0};
   greenstone::dds::GUID writer_guid_;
   greenstone::dds::GUID reader_guid_;
 
   const char *typesupport_identifier_{nullptr};
   ClientPubListener *pub_listener_{nullptr};
+  greenstone::dds::StatusMask pub_listener_mask_{0};
   std::atomic_size_t response_subscriber_matched_count_;
   std::atomic_size_t request_publisher_matched_count_;
 } CustomClientInfo;
@@ -109,7 +111,7 @@ public:
 
   size_t get_unread_responses()
   {
-    return info_->response_reader_->get_unread_cache_count();
+    return info_->response_reader_->get_unread_cache_count(true);
   }
 
   // Provide handlers to perform an action when a
@@ -128,15 +130,13 @@ public:
       user_data_ = user_data;
       on_new_response_cb_ = callback;
 
-      greenstone::dds::StatusMask status_mask = info_->response_reader_->get_status_changes();
-      status_mask |= greenstone::dds::StatusKind::DATA_AVAILABLE_STATUS;
-      info_->response_reader_->set_listener(this, status_mask);
+      info_->listener_mask_ |= greenstone::dds::StatusKind::DATA_AVAILABLE_STATUS;
+      info_->response_reader_->set_listener(this, info_->listener_mask_);
     } else {
       std::lock_guard<std::mutex> lock_mutex(on_new_response_m_);
 
-      greenstone::dds::StatusMask status_mask = info_->response_reader_->get_status_changes();
-      status_mask &= ~greenstone::dds::StatusKind::DATA_AVAILABLE_STATUS;
-      info_->response_reader_->set_listener(this, status_mask);
+      info_->listener_mask_ &= ~greenstone::dds::StatusKind::DATA_AVAILABLE_STATUS;
+      info_->response_reader_->set_listener(this, info_->listener_mask_);
 
       user_data_ = nullptr;
       on_new_response_cb_ = nullptr;

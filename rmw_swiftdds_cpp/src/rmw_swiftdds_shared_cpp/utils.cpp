@@ -85,11 +85,11 @@ void remove_topic_and_type(
   auto topic = dynamic_cast<const greenstone::dds::Topic *>(topic_desc);
 
   if(nullptr != topic) {
-    participant_info->delete_topic(topic, event_listener);
+    participant_info->delete_topic(topic, type->type_identifier(), event_listener);
   }
 
   if(type) {
-    participant_info->participant_->unregister_type(type->get_type_name());
+    participant_info->participant_->unregister_type(type->get_type_name(), type->type_identifier());
   }
 }
 
@@ -125,6 +125,7 @@ bool create_datareader(
   greenstone::dds::Subscriber *subscriber,
   greenstone::dds::TopicDescription *des_topic,
   CustomDataReaderListener *listener,
+  greenstone::dds::StatusMask mask,
   greenstone::dds::DataReader **data_reader)
 {
   greenstone::dds::DataReaderQos updated_qos = datareader_qos;
@@ -154,13 +155,13 @@ bool create_datareader(
 
   // Creates DataReader (with subscriber name to not change name policy)
   *data_reader = subscriber->create_datareader(
-      des_topic, updated_qos, listener, greenstone::dds::StatusKind::SUBSCRIPTION_MATCHED_STATUS);
+      des_topic, updated_qos, listener, mask);
   if(!(*data_reader) && (RMW_UNIQUE_NETWORK_FLOW_ENDPOINTS_OPTIONALLY_REQUIRED ==
     subscription_options->require_unique_network_flow_endpoints))
   {
     greenstone::dds::DataReaderQos reader_qos = datareader_qos;
     *data_reader = subscriber->create_datareader(
-        des_topic, reader_qos, listener, greenstone::dds::StatusKind::SUBSCRIPTION_MATCHED_STATUS);
+        des_topic, reader_qos, listener, mask);
   }
 
   if(!(*data_reader)) {

@@ -69,23 +69,26 @@ greenstone::dds::Topic *
 CustomParticipantInfo::find_or_create_topic(
   const std::string & topic_name,
   const std::string & type_name,
+  const std::string & type_identifier,
   const greenstone::dds::TopicQos & topic_qos,
   EventListenerInterface *event_listener)
 {
   greenstone::dds::Topic *topic = nullptr;
 
   std::lock_guard<std::mutex> lck(topic_name_to_topic_mutex_);
+  std::string const topic_map_key {topic_name + ":" + type_identifier};
   std::map<std::string, std::unique_ptr<UseCountTopic>>::const_iterator it =
-    topic_name_to_topic_.find(topic_name);
+    topic_name_to_topic_.find(topic_map_key);
   if(it == topic_name_to_topic_.end()) {
     // Not already in the map, we need to add it
     auto uct = std::make_unique<UseCountTopic>();
     uct->topic_listener = new CustomTopicListener(event_listener);
-    topic = participant_->create_topic(topic_name, type_name, topic_qos, uct->topic_listener);
+    topic = participant_->create_topic(topic_name, type_name, type_identifier, topic_qos,
+      uct->topic_listener);
     uct->use_count = 1;
     uct->topic = topic;
 
-    topic_name_to_topic_[topic_name] = std::move(uct);
+    topic_name_to_topic_[topic_map_key] = std::move(uct);
   } else {
     // Already in the map, just increase the use count
     it->second->use_count++;
@@ -98,6 +101,7 @@ CustomParticipantInfo::find_or_create_topic(
 
 void CustomParticipantInfo::delete_topic(
   const greenstone::dds::Topic *topic,
+  const std::string & type_identifier,
   EventListenerInterface *event_listener)
 {
   if(topic == nullptr) {
@@ -105,8 +109,9 @@ void CustomParticipantInfo::delete_topic(
   }
 
   std::lock_guard<std::mutex> lck(topic_name_to_topic_mutex_);
+  std::string const topic_map_key {topic->get_name() + ":" + type_identifier};
   std::map<std::string, std::unique_ptr<UseCountTopic>>::const_iterator it =
-    topic_name_to_topic_.find(topic->get_name());
+    topic_name_to_topic_.find(topic_map_key);
 
   if(it != topic_name_to_topic_.end()) {
     it->second->use_count--;

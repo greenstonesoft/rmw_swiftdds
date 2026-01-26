@@ -78,18 +78,8 @@ rmw_ret_t _take(
 
   greenstone::dds::SampleInfo sample_info;
   while(greenstone::dds::ReturnCode_t::RETCODE_OK ==
-    info->data_reader_->take_next_sample(ros_message, sample_info))
+    info->data_reader_->take_first_sample(ros_message, sample_info))
   {
-    // The info->data_reader_->take() call already modified the ros_message arg
-    // See rmw_swiftdds_shared_cpp/src/TypeSupport_impl.cpp
-
-    // auto reset = rcpputils::make_scope_exit(
-    //   [&]()
-    //   {
-    //     data_values.length(0);
-    //     info_seq.length(0);
-    //   });
-
     if(subscription->options.ignore_local_publications) {
       greenstone::dds::GUID sample_writer_guid;
       sample_writer_guid.from_octet16(sample_info.publication_handle.value);

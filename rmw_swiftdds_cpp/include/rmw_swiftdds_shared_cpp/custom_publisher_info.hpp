@@ -67,6 +67,7 @@ typedef struct CustomPublisherInfo : public CustomEventInfo
   greenstone::dds::DataWriter *data_writer_{nullptr};
   RMWPublisherEvent *publisher_event_{nullptr};
   CustomDataWriterListener *data_writer_listener_{nullptr};
+  greenstone::dds::StatusMask data_writer_listener_mask_{0};
   std::shared_ptr<greenstone::dds::TopicDataType> type_support_;
   const void *type_support_impl_{nullptr};
   rmw_gid_t publisher_gid{};

@@ -54,7 +54,9 @@ typedef struct CustomServiceInfo
   greenstone::dds::Topic *response_topic_{nullptr};
 
   ServiceListener *listener_{nullptr};
+  greenstone::dds::StatusMask listener_mask_{0};
   ServicePubListener *pub_listener_{nullptr};
+  greenstone::dds::StatusMask pub_listener_mask_{0};
 
   const char *typesupport_identifier_{nullptr};
 } CustomServiceInfo;
@@ -135,7 +137,7 @@ public:
 
   size_t get_unread_resquests()
   {
-    return info_->request_reader_->get_unread_cache_count();
+    return info_->request_reader_->get_unread_cache_count(true);
   }
 
   void on_data_available(greenstone::dds::DataReader *) noexcept final
@@ -155,7 +157,6 @@ public:
   {
     if(callback) {
       auto unread_requests = get_unread_resquests();
-
       std::lock_guard<std::mutex> lock_mutex(on_new_request_m_);
 
       if(0 < unread_requests) {
@@ -165,15 +166,13 @@ public:
       user_data_ = user_data;
       on_new_request_cb_ = callback;
 
-      greenstone::dds::StatusMask status_mask = info_->request_reader_->get_status_changes();
-      status_mask |= greenstone::dds::StatusKind::DATA_AVAILABLE_STATUS;
-      info_->request_reader_->set_listener(this, status_mask);
+      info_->listener_mask_ |= greenstone::dds::StatusKind::DATA_AVAILABLE_STATUS;
+      info_->request_reader_->set_listener(this, info_->listener_mask_);
     } else {
       std::lock_guard<std::mutex> lock_mutex(on_new_request_m_);
 
-      greenstone::dds::StatusMask status_mask = info_->request_reader_->get_status_changes();
-      status_mask &= ~greenstone::dds::StatusKind::DATA_AVAILABLE_STATUS;
-      info_->request_reader_->set_listener(this, status_mask);
+      info_->listener_mask_ &= ~greenstone::dds::StatusKind::DATA_AVAILABLE_STATUS;
+      info_->request_reader_->set_listener(this, info_->listener_mask_);
 
       user_data_ = nullptr;
       on_new_request_cb_ = nullptr;

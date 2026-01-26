@@ -168,7 +168,7 @@ struct TypeMap<ROSIDL_TypeKind::BOOLEAN, g>
 template<TypeGenerator g>
 struct TypeMap<ROSIDL_TypeKind::OCTET, g>
 {
-  using type = u_char;
+  using type = uint8_t;
 };
 
 template<TypeGenerator g>
@@ -282,10 +282,11 @@ public:
   DdsCdr & serialize(DdsCdr & cdr, void *data)
   {
     type *meta_data = reinterpret_cast<type *>(data);
+    std::string tmp;
     if(meta_data->data != nullptr) {
-      std::string tmp{meta_data->data, meta_data->size};
-      cdr.serialize(tmp);
+      tmp = std::string{meta_data->data, meta_data->size};
     }
+    cdr.serialize(tmp);
 
     return cdr;
   }
@@ -295,7 +296,7 @@ public:
     std::string tmp;
     cdr.deserialize(tmp);
     type *meta_data = reinterpret_cast<type *>(data);
-    if(meta_data->data == nullptr) {
+    if(meta_data->data != nullptr) {
       rosidl_runtime_c__String__init(meta_data);
     }
     rosidl_runtime_c__String__assign(meta_data, tmp.c_str());
@@ -306,10 +307,9 @@ public:
   uint32_t max_align_size(uint32_t const _cur_al, void *data)
   {
     type *meta_data = reinterpret_cast<type *>(data);
-    std::string tmp{meta_data->data, meta_data->size};
-    uint32_t maxSize = _cur_al;
-    maxSize = static_cast<uint32_t>(gstone::rtps::CdrUtil::alignment(_cur_al, tmp));
-    return maxSize;
+    uint32_t cur{static_cast<uint32_t>(gstone::rtps::CdrUtil::alignment_bytes(_cur_al, 4U))};
+    cur += static_cast<uint32_t>(meta_data->size + 1U);
+    return cur;
   }
 };
 
@@ -324,10 +324,11 @@ public:
   DdsCdr & serialize(DdsCdr & cdr, void *data)
   {
     type *meta_data = reinterpret_cast<type *>(data);
+    std::u16string tmp;
     if(meta_data->data != nullptr) {
-      std::u16string tmp{reinterpret_cast<char16_t *>(meta_data->data), meta_data->size};
-      cdr.serialize(tmp);
+      tmp = std::u16string{reinterpret_cast<char16_t *>(meta_data->data), meta_data->size};
     }
+    cdr.serialize(tmp);
 
     return cdr;
   }
@@ -337,7 +338,7 @@ public:
     std::u16string tmp;
     cdr.deserialize(tmp);
     type *meta_data = reinterpret_cast<type *>(data);
-    if(meta_data->data == nullptr) {
+    if(meta_data->data != nullptr) {
       rosidl_runtime_c__U16String__init(meta_data);
     }
     rosidl_runtime_c__U16String__assign(meta_data, reinterpret_cast<uint16_t const *>(tmp.c_str()));
@@ -415,7 +416,8 @@ public:
         max_size = static_cast<uint32_t>(gstone::rtps::CdrUtil::alignment(max_size, meta_data[i]));
       }
     } else {
-      uint32_t const one_ele{static_cast<uint32_t>(gstone::rtps::CdrUtil::alignment(1U, meta_data[0U]))};
+      uint32_t const one_ele{static_cast<uint32_t>(gstone::rtps::CdrUtil::alignment(1U,
+            meta_data[0U]))};
       max_size += one_ele * obj_size;
     }
 
@@ -433,7 +435,7 @@ class ArrayValueType<
   !std::is_same_v<_type, std::u16string>>>
 {
 public:
-  static constexpr bool IS_VARIABLE_TYPES{true};
+  static constexpr bool IS_VARIABLE_TYPES{false};
   static constexpr bool MEM_TYPE_IS_CLASS{true};
   ArrayValueType(
     size_t const _size,

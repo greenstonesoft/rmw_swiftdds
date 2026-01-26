@@ -216,10 +216,15 @@ bool get_datawriter_qos(
   greenstone::dds::DataWriterAttributes attr;
   attr.push_back_prefer_transport_kind(gstone::rtps::TransportKind_t::TRANSPORT_KIND_SHM);
   attr.only_recv_by_udp(false);
-  attr.enable_zero_copy(true);
   {
-    std::lock_guard<std::mutex> lock{QosConfig::getInstance().qosConfig_mutex};
-    attr.is_sync(QosConfig::getInstance().send_sync);
+    std::lock_guard<std::mutex> lock{rmw_swiftdds_shared_cpp::QosConfig::getInstance().
+      qosConfig_mutex};
+    attr.is_sync(rmw_swiftdds_shared_cpp::QosConfig::getInstance().send_sync);
+    attr.enable_zero_copy(rmw_swiftdds_shared_cpp::QosConfig::getInstance().enable_zero_copy);
+    if(attr.enable_zero_copy()) {
+      attr.zero_copy_memory_size(
+      rmw_swiftdds_shared_cpp::QosConfig::getInstance().zero_copy_shm_size);
+    }
   }
   datawriter_qos.attributes(attr);
 
