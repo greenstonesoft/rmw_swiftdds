@@ -21,19 +21,13 @@ You can specify Swift DDS as your ROS 2 middleware layer in two different ways:
 `rmw_swiftdds_cpp` depends on the installation of [SwiftDDS](https://github.com/greenstonesoft/greenstone-dds), so SwiftDDS must be installed.
 1. Install the registry signing key:
     ```bash
-    curl -fsSL "https://buildkite:bkua_e7b699a10f5eda9c554c4e7638d8dbc968920c01@packages.buildkite.com/greenstonetechnology/swiftdds-deb/gpgkey" | sudo gpg --dearmor -o /etc/apt/keyrings/greenstonetechnology_swiftdds-deb-archive-keyring.gpg
+    curl -fsSL "https://packages.buildkite.com/greenstonetechnology/swiftdds-deb/gpgkey" | sudo gpg --dearmor -o /etc/apt/keyrings/greenstonetechnology_swiftdds-deb-archive-keyring.gpg
     ```
-2. Stash the private registry credentials into apt auth.conf:
-    ```bash
-    echo "machine https://packages.buildkite.com/greenstonetechnology/swiftdds-deb/ login buildkite password bkua_e7b699a10f5eda9c554c4e7638d8dbc968920c01" | sudo tee /etc/apt/auth.conf.d/greenstonetechnology_swiftdds-deb.conf > /dev/null
-
-    sudo chmod 600 /etc/apt/auth.conf.d/greenstonetechnology_swiftdds-deb.conf
-    ```
-3. Configure the source:
+2. Configure the source:
     ```bash
     echo -e "deb [signed-by=/etc/apt/keyrings/greenstonetechnology_swiftdds-deb-archive-keyring.gpg] https://packages.buildkite.com/greenstonetechnology/swiftdds-deb/any/ any main\ndeb-src [signed-by=/etc/apt/keyrings/greenstonetechnology_swiftdds-deb-archive-keyring.gpg] https://packages.buildkite.com/greenstonetechnology/swiftdds-deb/any/ any main" | sudo tee /etc/apt/sources.list.d/buildkite-greenstonetechnology-swiftdds-deb.list > /dev/null
     ```
-4. Run the installation command:
+3. Run the installation command:
     ```bash
     sudo apt update && sudo apt install greenstone-swift-dds
     ```
@@ -47,7 +41,7 @@ You can specify Swift DDS as your ROS 2 middleware layer in two different ways:
 ## Install SwiftDDS from dnf(RHEL)
 1. Registry Configuration:
     ```bash
-    sudo sh -c 'echo -e "[swiftdds-rpm]\nname=swiftdds_rpm\nbaseurl=https://buildkite:bkua_e7b699a10f5eda9c554c4e7638d8dbc968920c01@packages.buildkite.com/greenstonetechnology/swiftdds-rpm/rpm_any/rpm_any/\$basearch\nenabled=1\nrepo_gpgcheck=1\ngpgcheck=0\ngpgkey=https://buildkite:bkua_e7b699a10f5eda9c554c4e7638d8dbc968920c01@packages.buildkite.com/greenstonetechnology/swiftdds-rpm/gpgkey\npriority=1" > /etc/yum.repos.d/swiftdds-rpm.repo'
+    echo -e "[swiftdds-rpm]\nname=swiftdds_rpm\nbaseurl=https://packages.buildkite.com/greenstonetechnology/swiftdds-rpm/rpm_any/rpm_any/\$basearch\nenabled=1\nrepo_gpgcheck=1\ngpgcheck=0\ngpgkey=https://packages.buildkite.com/greenstonetechnology/swiftdds-rpm/gpgkey\npriority=1" | sudo tee /etc/yum.repos.d/swiftdds-rpm.repo > /dev/null
     ```
 2. Run the installation command:
     ```bash
