@@ -1,0 +1,9 @@
+{
+  "ip_address": ["192.168.1.100"],
+  "shared_memory": true,
+  "shared_memory_buffer_size": 20000000,
+  "WLP": false,
+  "send_mode": "async",
+  "enable_zero_copy": false,
+  "zero_copy_shm_size": 100000000
+}
