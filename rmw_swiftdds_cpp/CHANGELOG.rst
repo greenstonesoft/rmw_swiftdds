@@ -2,7 +2,7 @@
 Changelog for package rmw_swiftdds_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1.0.0 (2026-01-26)
+1.0.1 (2026-01-26)
 ------------------
 * Code formatting fix
 * Rclcpp test fix
